@@ -12,6 +12,7 @@
     "cf-typegen": "wrangler types",
     "i18n:validate": "npx tsx scripts/i18n/validate.ts",
     "i18n:new-locale": "npx tsx scripts/i18n/new-locale.ts",
+    "i18n:translate": "npx tsx scripts/i18n/translate.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -19,9 +20,11 @@
   "license": "MIT",
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241218.0",
+    "@types/node": "^25.0.3",
+    "google-translate-api-x": "^10.7.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8",
+    "vitest": "^4.0.16",
     "wrangler": "^4.54.0"
   }
 }
