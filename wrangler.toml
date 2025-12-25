@@ -1,0 +1,9 @@
+name = "no-as-a-service"
+main = "src/index.ts"
+compatibility_date = "2024-12-18"
+
+# Workers Free tier: 100,000 requests/day
+# No billing if you stay under this limit
+
+[observability]
+enabled = true
