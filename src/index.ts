@@ -1,8 +1,12 @@
-import reasons from '../reasons.json';
+import {
+    DEFAULT_LOCALE,
+    getRandomReason,
+    parseAcceptLanguage,
+    resolveLocale,
+    SUPPORTED_LOCALES,
+} from './i18n';
 
-interface Env {
-  // Add environment bindings here if needed
-}
+interface Env {}
 
 // Rate limiting state (in-memory, per-isolate)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -20,23 +24,12 @@ function getClientIP(request: Request): string {
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const record = rateLimitMap.get(ip);
-
   if (!record || now > record.resetTime) {
     rateLimitMap.set(ip, { count: 1, resetTime: now + WINDOW_MS });
     return false;
   }
-
   record.count++;
-  if (record.count > RATE_LIMIT) {
-    return true;
-  }
-
-  return false;
-}
-
-function handleNoRequest(): Response {
-  const reason = reasons[Math.floor(Math.random() * reasons.length)];
-  return Response.json({ reason });
+  return record.count > RATE_LIMIT;
 }
 
 export default {
@@ -52,18 +45,36 @@ export default {
       );
     }
 
-    // Routing
+    // Language resolution: query param > Accept-Language > default
+    const langParam = url.searchParams.get('lang');
+    const acceptLang = request.headers.get('Accept-Language');
+    const locale = langParam
+      ? resolveLocale(langParam)
+      : parseAcceptLanguage(acceptLang);
+
+    // GET /no
     if (url.pathname === '/no' || url.pathname === '/no/') {
-      return handleNoRequest();
+      const reason = getRandomReason(locale);
+      return Response.json({
+        reason,
+        lang: locale,
+        availableLangs: SUPPORTED_LOCALES,
+      });
     }
 
-    // Root redirect or info
+    // GET / (root info)
     if (url.pathname === '/' || url.pathname === '') {
       return Response.json({
         service: 'No-as-a-Service',
         endpoint: '/no',
         description: 'Returns a random rejection reason',
         rateLimit: '120 requests/minute/IP',
+        defaultLang: DEFAULT_LOCALE,
+        supportedLangs: SUPPORTED_LOCALES,
+        usage: {
+          queryParam: '/no?lang=es',
+          acceptLanguage: 'Accept-Language: fr',
+        },
       });
     }
 
